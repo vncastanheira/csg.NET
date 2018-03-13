@@ -8,27 +8,27 @@ namespace csg_NET
 {
     public class Entity
     {
-        private Entity pNext;
-        private Property pProperties;
-        private Poly pPolys;
+        private Entity next;
+        private Property properties;
+        private Poly polys;
 
-        public Entity GetNext { get { return pNext; } }
-        public Property GetProperties { get { return pProperties; } }
-        public Polys GetPolys { get { return pPolys; } }
+        public Entity GetNext { get { return next; } }
+        public Property GetProperties { get { return properties; } }
+        public Poly GetPolys { get { return polys; } }
 
         public Entity()
         {
-            pNext = null;
-            pProperties = null;
-            pPolys = null;
+            next = null;
+            properties = null;
+            polys = null;
         }
 
         public int GetNumberOfProperties()
         {
-            Property p = pProperties;
+            Property p = properties;
             int uiCount = 0;
 
-            while (pProperties != null)
+            while (properties != null)
             {
                 p = p.GetNext;
                 uiCount++;
@@ -39,10 +39,10 @@ namespace csg_NET
 
         public int GetNumberOfPolys()
         {
-            Poly p = pPolys;
+            Poly p = polys;
             int uiCount = 0;
 
-            while (pPolys != null)
+            while (polys != null)
             {
                 p = p.GetNext;
                 uiCount++;
@@ -55,29 +55,29 @@ namespace csg_NET
         {
             if(IsLast)
             {
-                pNext = entity;
+                next = entity;
                 return;
             }
 
-            Entity ent = pNext;
+            Entity ent = next;
 
             while (!ent.IsLast)
             {
                 ent = ent.GetNext;
             }
 
-            ent.pNext = entity;
+            ent.next = entity;
         }
 
         public void AddProperty(Property property)
         {
-            if (pProperties == null)
+            if (properties == null)
             {
-                pProperties = property;
+                properties = property;
                 return;
             }
 
-            Property prop = pProperties;
+            Property prop = properties;
             while (!prop.IsLast)
             {
                 prop = prop.GetNext;
@@ -88,13 +88,13 @@ namespace csg_NET
 
         public void AddPoly(Poly poly)
         {
-            if (pPolys == null)
+            if (polys == null)
             {
-                pPolys = poly;
+                polys = poly;
                 return;
             }
 
-            Poly p = pPolys;
+            Poly p = polys;
             while (!p.IsLast)
             {
                 p = p.GetNext;
@@ -106,6 +106,6 @@ namespace csg_NET
         // TODO: file access
         public void WriteEntity(StreamWriter filestream) { }
 
-        public bool IsLast { get { return pNext == null; } }
+        public bool IsLast { get { return next == null; } }
     }
 }
