@@ -216,7 +216,60 @@ namespace csg_NET
             // Sort vertices
             for (i = 0; i < GetNumberOfVertices -2; i++)
             {
+                Vector3 a = Vector3.zero;
+                Plane p = new Plane();
+                float smallestAngle = -1;
+                int smallest = -1;
 
+                a = verts[i].p - center;
+                a.Normalize();
+
+                p.PointsToPlane(verts[i].p, center, center + plane.n);
+
+                for (int j = i + 1; j < GetNumberOfVertices; j++)
+                {
+                    if(p.ClassifyPoints(verts[j].p) != Plane.eCP.BACK)
+                    {
+                        Vector3 b = verts[j].p - center;
+                        b.Normalize();
+
+                        float angle = Vector3.Dot(a, b);
+                        if (angle > smallestAngle)
+                        {
+                            smallestAngle = angle;
+                            smallest = j;
+                        }
+                    }
+                }
+
+                if (smallest == -1)
+                {
+                    Console.WriteLine("Error: degenerate polygon! lock him up");
+                    Console.ReadKey();
+                    Application.Quit();
+                }
+
+                Vertex t = verts[smallest];
+                verts[smallest] = verts[i + 1];
+                verts[i + 1] = t;
+            }
+
+            // Check if vertex order needs to be reversed for back-facing polygon
+            Plane oldPlane = plane;
+
+            CalculatePlane();
+
+            if (Vector3.Dot(plane.n, oldPlane.n) < 0)
+            {
+                int j = GetNumberOfVertices;
+
+                for (int index = 0; index < j; index++)
+                {
+                    Vertex v = verts[index];
+                    verts[index] = verts[j - index - 1];
+                    verts[j - index - 1] = v;
+                }
+                
             }
         }
 
@@ -224,7 +277,12 @@ namespace csg_NET
 
         // TODO: make better parameters (C# can't take arrays with fixed sizes)
         public void CalculateTextureCoordinates(int texWidth, int texHeight, Plane[] textAxis, double[] texScale) { }
-        public Poly SplitPoly(Poly poly, Poly front, Poly back) { }
+
+        public Poly SplitPoly(Poly poly, Poly front, Poly back)
+        {
+
+        }
+
         public eCP ClassifyPoly(Poly poly) { }
 
         public bool IsLast { get { return next == null; } }
