@@ -18,14 +18,16 @@ namespace csg_NET
         public Plane plane;
         public int TextureID;
 
+        public Poly GetNext { get { return next; } }
+        public int GetNumberOfVertices { get { return numberOfVertices; } }
+        public bool IsLast { get { return next == null; } }
+
         public Poly()
         {
             next = null;
             verts = new Vertex[0];
 
         }
-
-        public Poly GetNext { get { return next; } }
 
         public Poly CopyList()
         {
@@ -78,7 +80,7 @@ namespace csg_NET
                     Poly front = null;
                     Poly back = null;
 
-                    SplitPoly(poly, front, back);
+                    SplitPoly(poly, ref front, ref back);
 
                     if(IsLast)
                         return front;
@@ -98,8 +100,6 @@ namespace csg_NET
                     return null;
             }
         }
-
-        public int GetNumberOfVertices { get { return numberOfVertices; } }
 
         public void AddVertex(Vertex vertex)
         {
@@ -149,8 +149,6 @@ namespace csg_NET
             next = poly;
         }
 
-        // TODO: file write
-        public void WritePoly(StreamWriter fileStream) { }
 
         public bool CalculatePlane()
         {
@@ -273,19 +271,235 @@ namespace csg_NET
             }
         }
 
-        public void ToLeftHanded() { }
-
-        // TODO: make better parameters (C# can't take arrays with fixed sizes)
-        public void CalculateTextureCoordinates(int texWidth, int texHeight, Plane[] textAxis, double[] texScale) { }
-
-        public Poly SplitPoly(Poly poly, Poly front, Poly back)
+        // declared function without a body, go figure
+        //public void ToLeftHanded() { }
+        
+        public void CalculateTextureCoordinates(int texWidth, int texHeight, 
+            Plane texAxisU, Plane texAxisV, 
+            float texScaleU, float texScaleV)
         {
 
+            // Calculate texture coordinates
+            for (int i = 0; i < GetNumberOfVertices; i++)
+            {
+                float U, V;
+
+                U = Vector3.Dot(texAxisU.n, verts[i].p);
+                U = U / texWidth / texScaleU;
+                U = U + (texAxisU.d / texWidth);
+
+                V = Vector3.Dot(texAxisV.n, verts[i].p);
+                V = V / texHeight / texScaleV;
+                V = V + (texAxisV.d / texHeight);
+
+                verts[i].tex = new float[] { U, V };
+            }
+
+            // Check which axis should be normalized
+            bool doU = true, doV = true;
+
+            for (int i = 0; i < GetNumberOfVertices; i++)
+            {
+                if (verts[i].tex[0] < 1 && verts[i].tex[0] > -1)
+                {
+                    doU = false;
+                }
+
+                if (verts[i].tex[1] < 1 && verts[i].tex[1] > -1)
+                {
+                    doV = false;
+                }
+            }
+
+            // Calculate coordinate nearest to 0
+            if (doU || doV)
+            {
+                float nearestU = 0;
+                float U = verts[0].tex[0];
+
+                float nearestV = 0;
+                float V = verts[0].tex[1];
+
+                if (doU)
+                {
+                    if (U > 1)
+                    {
+                        nearestU = Mathf.Floor(U);
+                    }
+                    else
+                    {
+                        nearestU = Mathf.Ceil(U);
+                    }
+                }
+
+                if (doV)
+                {
+                    if (V > 1)
+                    {
+                        nearestV = Mathf.Floor(V);
+                    }
+                    else
+                    {
+                        nearestV = Mathf.Ceil(V);
+                    }
+                }
+
+                for (int i = 0; i < GetNumberOfVertices; i++)
+                {
+                    if (doU)
+                    {
+                        U = verts[i].tex[0];
+
+                        if (Mathf.Abs(U) < Mathf.Abs(nearestU))
+                        {
+                            if (U > 1)
+                            {
+                                nearestU = Mathf.Floor(U);
+                            }
+                            else
+                            {
+                                nearestU = Mathf.Ceil(U);
+                            }
+                        }
+                    }
+
+                    if (doV)
+                    {
+                        V = verts[i].tex[1];
+
+                        if (Mathf.Abs(V) < Mathf.Abs(nearestV))
+                        {
+                            if(V > 1)
+                            {
+                                nearestV = Mathf.Floor(V);
+                            }
+                            else
+                            {
+                                nearestV = Mathf.Ceil(V);
+                            }
+                        }
+                    }
+                }
+
+                // Normalize texture coordinates
+                for (int i = 0; i < GetNumberOfVertices; i++)
+                {
+                    verts[i].tex[0] = verts[i].tex[0] - nearestU;
+                    verts[i].tex[1] = verts[i].tex[1] - nearestV;
+                }
+            }
         }
 
-        public eCP ClassifyPoly(Poly poly) { }
+        public void SplitPoly(Poly poly, ref Poly front, ref Poly back)
+        {
+            Plane.eCP[] cp = new Plane.eCP[poly.GetNumberOfVertices];
 
-        public bool IsLast { get { return next == null; } }
+            // classify all points
+            for (int i = 0; i < poly.GetNumberOfVertices; i++)
+            {
+                cp[i] = plane.ClassifyPoints(poly.verts[i].p);
+            }
+
+            // builds fragments
+            Poly newFront = new Poly();
+            Poly newBack = new Poly();
+
+            newFront.TextureID = poly.TextureID;
+            newBack.TextureID = poly.TextureID;
+            newFront.plane = poly.plane;
+            newBack.plane = poly.plane;
+
+            for (int i = 0; i < poly.GetNumberOfVertices; i++)
+            {
+                // Add point to appropriate list
+                switch (cp[i])
+                {
+                    case Plane.eCP.FRONT:
+                        newFront.AddVertex(poly.verts[i]);
+                        break;
+                    case Plane.eCP.BACK:
+                        newBack.AddVertex(poly.verts[i]);
+                        break;
+                    case Plane.eCP.ONPLANE:
+                        newFront.AddVertex(poly.verts[i]);
+                        newBack.AddVertex(poly.verts[i]);
+                        break;
+                }
+
+                // Check if edges should be split
+                int iNext = i + 1;
+                bool ignore = false;
+
+                if (i == (poly.GetNumberOfVertices - 1))
+                    iNext = 0;
+
+                if (cp[i] == Plane.eCP.ONPLANE && cp[iNext] != Plane.eCP.ONPLANE)
+                {
+                    ignore = true;
+                }
+                else if(cp[iNext] == Plane.eCP.ONPLANE && cp[i] != Plane.eCP.ONPLANE)
+                {
+                    ignore = true;
+                }
+
+                if (!ignore && (cp[i] != cp[iNext]))
+                {
+                    Vertex v = new Vertex();    // New vertex created by splitting
+                    float p = 0f;               // Percentage between the two points
+
+                    plane.GetIntersection(poly.verts[i].p, poly.verts[iNext].p, v.p, p);
+
+                    v.tex[0] = poly.verts[iNext].tex[0] - poly.verts[i].tex[0];
+                    v.tex[1] = poly.verts[iNext].tex[1] - poly.verts[i].tex[1];
+
+                    v.tex[0] = poly.verts[i].tex[0] + (p * v.tex[0]);
+                    v.tex[1] = poly.verts[i].tex[1] + (p * v.tex[1]);
+
+                    newFront.AddVertex(v);
+                    newBack.AddVertex(v);
+                }
+            }
+
+            newFront.CalculatePlane();
+            newBack.CalculatePlane();
+
+            front = newFront;
+            back = newBack;
+        }
+
+        public eCP ClassifyPoly(Poly poly)
+        {
+            bool front = false, back = false;
+            float dist;
+
+            for (int i = 0; i < poly.GetNumberOfVertices; i++)
+            {
+                dist = Vector3.Dot(plane.n, poly.verts[i].p) + plane.d;
+
+                if (dist > 0.001f)
+                {
+                    if (back)
+                        return eCP.SPLIT;
+
+                    front = true;
+                }
+                else if(dist < -0.001f)
+                {
+                    if (front)
+                        return eCP.SPLIT;
+
+                    back = true;
+                }
+            }
+
+            if (front) return eCP.FRONT;
+            else if (back) return eCP.BACK;
+
+            return eCP.ONPLANE;
+        }
+
+        // TODO: file write
+        public void WritePoly(StreamWriter fileStream) { }
 
         public static bool operator == (Poly p1, Poly p2)
         {
