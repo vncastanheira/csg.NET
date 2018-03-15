@@ -53,7 +53,7 @@ namespace csg_NET
             next = property;
         }
 
-        // TOOD: writing property to disk (or not)
+        // TODO: writing property to disk (or not)
         public void WriteProperty(StreamWriter fileStream) { }
 
         public bool IsLast { get { return next == null; } }

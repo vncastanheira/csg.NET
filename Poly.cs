@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using UnityEngine;
 
 namespace csg_NET
 {
@@ -65,7 +61,7 @@ namespace csg_NET
                 case eCP.ONPLANE:
                     float angle = Vector3.Dot(plane.n, poly.plane.n) - 1;
 
-                    if(angle < Mathf.Epsilon && angle > -Mathf.Epsilon)
+                    if (angle < Mathf.EPSILON && angle > -Mathf.EPSILON)
                     {
                         if (!clipOnPlane)
                             return poly.CopyPoly();
@@ -82,7 +78,7 @@ namespace csg_NET
 
                     SplitPoly(poly, ref front, ref back);
 
-                    if(IsLast)
+                    if (IsLast)
                         return front;
 
                     Poly backFrags = next.ClipToList(back, clipOnPlane);
@@ -111,13 +107,13 @@ namespace csg_NET
             numberOfVertices++;
         }
 
-        public void AddPoly(Poly poly)
+        public void AddPoly(Poly pPoly_)
         {
-            if (poly == null)
+            if (pPoly_ != null)
             {
-                if(IsLast)
+                if (IsLast)
                 {
-                    next = poly;
+                    next = pPoly_;
                     return;
                 }
 
@@ -127,13 +123,13 @@ namespace csg_NET
                     p = p.GetNext;
                 }
 
-                p.next = poly;
+                p.next = pPoly_;
             }
         }
 
         public void SetNext(Poly poly)
         {
-            if(IsLast)
+            if (IsLast)
             {
                 next = poly;
                 return;
@@ -165,7 +161,7 @@ namespace csg_NET
             plane.n = Vector3.zero;
             centerOfMass = Vector3.zero;
 
-            for ( i = 0; i < GetNumberOfVertices; i++)
+            for (i = 0; i < GetNumberOfVertices; i++)
             {
                 j = i + 1;
 
@@ -180,15 +176,15 @@ namespace csg_NET
                 centerOfMass.z += verts[i].p.z;
             }
 
-            if (Mathf.Abs(plane.n.x) < Mathf.Epsilon 
-            &&  Mathf.Abs(plane.n.y) < Mathf.Epsilon
-            &&  Mathf.Abs(plane.n.z) < Mathf.Epsilon)
+            if (Math.Abs(plane.n.x) < Mathf.EPSILON
+            && Math.Abs(plane.n.y) < Mathf.EPSILON
+            && Math.Abs(plane.n.z) < Mathf.EPSILON)
             {
                 return false;
             }
 
-            magnitude = Mathf.Sqrt(plane.n.x * plane.n.x + plane.n.y * plane.n.y + plane.n.z * plane.n.z);
-            if (magnitude < Mathf.Epsilon)
+            magnitude = (float)Math.Sqrt(plane.n.x * plane.n.x + plane.n.y * plane.n.y + plane.n.z * plane.n.z);
+            if (magnitude < Mathf.EPSILON)
                 return false;
 
             plane.n /= magnitude;
@@ -212,7 +208,7 @@ namespace csg_NET
             center /= GetNumberOfVertices;
 
             // Sort vertices
-            for (i = 0; i < GetNumberOfVertices -2; i++)
+            for (i = 0; i < GetNumberOfVertices - 2; i++)
             {
                 Vector3 a = Vector3.zero;
                 Plane p = new Plane();
@@ -226,7 +222,7 @@ namespace csg_NET
 
                 for (int j = i + 1; j < GetNumberOfVertices; j++)
                 {
-                    if(p.ClassifyPoints(verts[j].p) != Plane.eCP.BACK)
+                    if (p.ClassifyPoints(verts[j].p) != Plane.eCP.BACK)
                     {
                         Vector3 b = verts[j].p - center;
                         b.Normalize();
@@ -244,7 +240,7 @@ namespace csg_NET
                 {
                     Console.WriteLine("Error: degenerate polygon! lock him up");
                     Console.ReadKey();
-                    Application.Quit();
+                    Environment.Exit(1);
                 }
 
                 Vertex t = verts[smallest];
@@ -267,15 +263,15 @@ namespace csg_NET
                     verts[index] = verts[j - index - 1];
                     verts[j - index - 1] = v;
                 }
-                
+
             }
         }
 
         // declared function without a body, go figure
         //public void ToLeftHanded() { }
-        
-        public void CalculateTextureCoordinates(int texWidth, int texHeight, 
-            Plane texAxisU, Plane texAxisV, 
+
+        public void CalculateTextureCoordinates(int texWidth, int texHeight,
+            Plane texAxisU, Plane texAxisV,
             float texScaleU, float texScaleV)
         {
 
@@ -324,11 +320,11 @@ namespace csg_NET
                 {
                     if (U > 1)
                     {
-                        nearestU = Mathf.Floor(U);
+                        nearestU = (float)Math.Floor(U);
                     }
                     else
                     {
-                        nearestU = Mathf.Ceil(U);
+                        nearestU = (float)Math.Ceiling(U);
                     }
                 }
 
@@ -336,11 +332,11 @@ namespace csg_NET
                 {
                     if (V > 1)
                     {
-                        nearestV = Mathf.Floor(V);
+                        nearestV = (float)Math.Floor(V);
                     }
                     else
                     {
-                        nearestV = Mathf.Ceil(V);
+                        nearestV = (float)Math.Ceiling(V);
                     }
                 }
 
@@ -350,15 +346,15 @@ namespace csg_NET
                     {
                         U = verts[i].tex[0];
 
-                        if (Mathf.Abs(U) < Mathf.Abs(nearestU))
+                        if (Math.Abs(U) < Math.Abs(nearestU))
                         {
                             if (U > 1)
                             {
-                                nearestU = Mathf.Floor(U);
+                                nearestU = (float)Math.Floor(U);
                             }
                             else
                             {
-                                nearestU = Mathf.Ceil(U);
+                                nearestU = (float)Math.Ceiling(U);
                             }
                         }
                     }
@@ -367,15 +363,15 @@ namespace csg_NET
                     {
                         V = verts[i].tex[1];
 
-                        if (Mathf.Abs(V) < Mathf.Abs(nearestV))
+                        if (Math.Abs(V) < Math.Abs(nearestV))
                         {
-                            if(V > 1)
+                            if (V > 1)
                             {
-                                nearestV = Mathf.Floor(V);
+                                nearestV = (float)Math.Floor(V);
                             }
                             else
                             {
-                                nearestV = Mathf.Ceil(V);
+                                nearestV = (float)Math.Ceiling(V);
                             }
                         }
                     }
@@ -437,7 +433,7 @@ namespace csg_NET
                 {
                     ignore = true;
                 }
-                else if(cp[iNext] == Plane.eCP.ONPLANE && cp[i] != Plane.eCP.ONPLANE)
+                else if (cp[iNext] == Plane.eCP.ONPLANE && cp[i] != Plane.eCP.ONPLANE)
                 {
                     ignore = true;
                 }
@@ -483,7 +479,7 @@ namespace csg_NET
 
                     front = true;
                 }
-                else if(dist < -0.001f)
+                else if (dist < -0.001f)
                 {
                     if (front)
                         return eCP.SPLIT;
@@ -501,8 +497,14 @@ namespace csg_NET
         // TODO: file write
         public void WritePoly(StreamWriter fileStream) { }
 
-        public static bool operator == (Poly p1, Poly p2)
+        public static bool operator ==(Poly p1, Poly p2)
         {
+            if (ReferenceEquals(p1, null))
+                return ReferenceEquals(p2, null);
+
+            if (ReferenceEquals(p2, null))
+                return ReferenceEquals(p1, null);
+
             if (p1.numberOfVertices == p2.numberOfVertices)
             {
                 if (p1.plane.d == p2.plane.d)

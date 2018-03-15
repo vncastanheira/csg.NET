@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
 
 namespace csg_NET
 {
@@ -15,16 +11,17 @@ namespace csg_NET
 
         public Plane()
         {
+            n = Vector3.zero;
             d = 0;
         }
 
-        public Plane(Vector2 n, float d)
+        public Plane(Vector3 n, float d)
         {
             this.n = n;
             this.d = d;
         }
 
-        public Plane(Vector2 a, Vector2 b, Vector2 c)
+        public Plane(Vector3 a, Vector3 b, Vector3 c)
         {
             PointsToPlane(a, b, c);
         }
@@ -46,11 +43,11 @@ namespace csg_NET
         {
             float Distance = DistanceToPlane(v);
 
-            if (Distance > Mathf.Epsilon)
+            if (Distance > Mathf.EPSILON)
             {
                 return eCP.FRONT;
             }
-            else if (Distance < -Mathf.Epsilon)
+            else if (Distance < -Mathf.EPSILON)
             {
                 return eCP.BACK;
             }
@@ -58,11 +55,11 @@ namespace csg_NET
             return eCP.ONPLANE;
         }
 
-        public bool GetIntersection(Plane a, Plane b, Vector3 v)
+        public bool GetIntersection(Plane a, Plane b, ref Vector3 v)
         {
             float denom = Vector3.Dot(n, Vector3.Cross(a.n, b.n));
 
-            if (Mathf.Abs(denom) < Mathf.Epsilon)
+            if (Math.Abs(denom) < Mathf.EPSILON)
             {
                 return false;
             }
@@ -82,7 +79,7 @@ namespace csg_NET
 
             denom = Vector3.Dot(n, direction);
 
-            if (Math.Abs(denom) < Mathf.Epsilon)
+            if (Math.Abs(denom) < Mathf.EPSILON)
             {
                 return false;
             }

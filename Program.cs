@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.IO;
 using OpenTK;
 using OpenTK.Graphics.ES20;
 
@@ -10,20 +8,48 @@ namespace csg_NET
     class Program
     {
         static GameWindow window;
+        static MapFile map;
 
         static void Main(string[] args)
         {
             // make sure parameters are valid
-            if (args.Length != 2)
+            if (args.Length == 0)
             {
-                Console.WriteLine("csg [in] [out]");
-                Console.WriteLine("in: MAP file");
-                Console.WriteLine("out: CMF file");
+                Console.WriteLine("csg map_file");
+                Console.WriteLine("no map was given to the program ='(");
                 Console.ReadLine();
                 return;
             }
 
-            // Parse MAP file
+            // Seach for MAP file
+            string mapPath = Path.Combine(Directory.GetCurrentDirectory(), args[0]);
+            if (File.Exists(mapPath))
+            {
+                // OK, parsing MAP...
+                try
+                {
+                    StreamReader fStream = new StreamReader(mapPath);
+                    string mapStr = fStream.ReadToEnd();
+                    Tokenizer tokenizer = new Tokenizer(mapStr);
+
+                    map = new MapFile();
+                    map.Load(tokenizer);
+                }
+                catch (Exception ex)
+                {
+                    Console.Write(ex.Message + "\n");
+                    Console.Write(ex.StackTrace);
+                    Console.ReadKey();
+                    return;
+                }
+            }
+            else
+            {
+                Console.WriteLine("The file path could not be found.");
+                Console.ReadLine();
+                return;
+            }
+
 
             window = new GameWindow(600, 600);
             window.Title = "MAP visualizer";
