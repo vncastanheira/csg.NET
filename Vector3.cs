@@ -80,6 +80,11 @@ namespace csg_NET
             }
         }
 
+        public double[] AsDouble()
+        {
+            return new double[] { this.x, this.y, this.z };
+        }
+
         /// <summary>
         ///   <para>Returns this vector with a magnitude of 1 (Read Only).</para>
         /// </summary>

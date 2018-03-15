@@ -4,8 +4,7 @@ namespace csg_NET
 {
     public class MapFile
     {
-
-        Entity entityList = null;
+        public Entity entityList { get; private set; } = null;
         int entities = 0;
         int polygons = 0;
         int textures = 0;

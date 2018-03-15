@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK.Graphics;
+using System;
 using System.IO;
 
 namespace csg_NET
@@ -13,6 +14,7 @@ namespace csg_NET
         public Vertex[] verts;
         public Plane plane;
         public int TextureID;
+        public Color4 Color;
 
         public Poly GetNext { get { return next; } }
         public int GetNumberOfVertices { get { return numberOfVertices; } }
@@ -23,6 +25,11 @@ namespace csg_NET
             next = null;
             verts = new Vertex[0];
 
+            var rand = new Random();
+            float r = rand.Next(0, 100) / 100f;
+            float g = rand.Next(0, 100) / 100f;
+            float b = rand.Next(0, 100) / 100f;
+            Color = new Color4(r, g, b, 1.0f);
         }
 
         public Poly CopyList()

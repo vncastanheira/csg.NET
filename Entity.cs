@@ -42,7 +42,7 @@ namespace csg_NET
             Poly p = polys;
             int uiCount = 0;
 
-            while (polys != null)
+            while (p != null)
             {
                 p = p.GetNext;
                 uiCount++;
