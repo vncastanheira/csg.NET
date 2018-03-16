@@ -125,9 +125,34 @@ namespace csg_NET
             GL.Translate(new OpenTK.Vector3(-24f, 26f, -25.5f));
         }
 
+        private static void Window_Load(object sender, EventArgs e)
+        {
+            window.CursorVisible = false;
+
+            //pgmID = GL.CreateProgram();
+            //LoadShader("vs.glsl", ShaderType.VertexShader, pgmID, out vertID);
+            //LoadShader("fs.glsl", ShaderType.FragmentShader, pgmID, out fragID);
+            //GL.LinkProgram(pgmID);
+            //GL.ValidateProgram(pgmID);
+            //GL.CompileShader(pgmID);
+            //string info = "Shader: " + GL.GetProgramInfoLog(pgmID);
+            //Console.WriteLine(string.IsNullOrEmpty(info) ? "no log" : info);
+
+            GL.ClearColor(0f, 0f, 0f, 1f);
+            GL.Enable(EnableCap.DepthTest);
+
+            Console.WriteLine("Error status: " + GL.GetError());
+
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.Translate(new OpenTK.Vector3(0, -90, -90));
+
+            GL.MatrixMode(MatrixMode.Projection);
+
+        }
+
         private static void Window_RenderFrame(object sender, FrameEventArgs e)
         {
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            window.Title = string.Format("MAP Viewer | FPS: {0:0.##}", (1f / e.Time));
 
             if (window.Focused)
             {
@@ -137,28 +162,17 @@ namespace csg_NET
                 ResetCursor();
             }
 
-
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             Matrix4 matrix = camera.GetViewMatrix();
             GL.LoadMatrix(ref matrix);
 
+            GL.UseProgram(pgmID);
             //DrawTutorialCube();
             DrawMap();
 
             GL.End();
 
             window.SwapBuffers();
-        }
-
-        private static void Window_Load(object sender, EventArgs e)
-        {
-            //pgmID = GL.CreateProgram();
-            //LoadShader("vs.glsl", ShaderType.VertexShader, pgmID, out vertID);
-            //LoadShader("fs.glsl", ShaderType.FragmentShader, pgmID, out fragID);
-            //GL.LinkProgram(pgmID);
-            //Console.WriteLine(GL.GetProgramInfoLog(pgmID));
-
-            GL.ClearColor(0f, 0f, 0f, 1f);
-            GL.Enable(EnableCap.DepthTest);
         }
 
         static void DrawTutorialCube()
@@ -179,7 +193,10 @@ namespace csg_NET
                 while (poly != null)
                 {
                     if (first)
+                    {
+                        poly.SetRandomColor();
                         Console.WriteLine("== Poly == ");
+                    }
 
                     GL.Color4(poly.Color);
                     for (int v = 0; v < poly.NumberOfVertices; v++)
@@ -210,6 +227,7 @@ namespace csg_NET
             }
             GL.CompileShader(address);
             GL.AttachShader(program, address);
+
             Console.WriteLine(GL.GetShaderInfoLog(address));
         }
 

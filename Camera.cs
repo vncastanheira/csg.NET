@@ -10,7 +10,7 @@ namespace csg_NET
     {
         public OpenTK.Vector3 Position = new OpenTK.Vector3();
         public OpenTK.Vector3 Orientation = new OpenTK.Vector3((float)Math.PI, 0f, 0f);
-        public float MoveSpeed = 0.2f;
+        public float MoveSpeed = 1.0f;
         public float MouseSensitivity = 0.01f;
         public Matrix4 Perspective;
 

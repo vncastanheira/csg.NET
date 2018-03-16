@@ -22,10 +22,14 @@ namespace csg_NET
             Next = null;
             verts = new Vertex[0];
 
+        }
+
+        public void SetRandomColor()
+        {
             var rand = new Random();
-            float r = rand.Next(0, 100) / 100f;
-            float g = rand.Next(0, 100) / 100f;
-            float b = rand.Next(0, 100) / 100f;
+            float r = (rand.Next(0, 100)) / 100f;
+            float g = (rand.Next(0, 100)) / 100f;
+            float b = (rand.Next(0, 100)) / 100f;
             Color = new Color4(r, g, b, 1.0f);
         }
 
