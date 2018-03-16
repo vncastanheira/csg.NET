@@ -12,15 +12,12 @@ namespace csg_NET
         public OpenTK.Vector3 Orientation = new OpenTK.Vector3((float)Math.PI, 0f, 0f);
         public float MoveSpeed = 0.2f;
         public float MouseSensitivity = 0.01f;
+        public Matrix4 Perspective;
 
-        public Camera()
+        public Camera(OpenTK.Vector3 pos, float fovy, float aspect, float zNear, float zFar) 
         {
-
-        }
-
-        public Camera(float x, float y, float z)
-        {
-            Position = new OpenTK.Vector3(x, y, y);
+            Perspective = Matrix4.CreatePerspectiveFieldOfView(fovy, aspect, zNear, zFar);
+            Position = pos;
         }
 
         public Matrix4 GetViewMatrix()

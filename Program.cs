@@ -59,8 +59,9 @@ namespace csg_NET
                 return;
             }
 
-            camera = new Camera(0, 0, 0);
             window = new GameWindow(600, 600, GraphicsMode.Default, "MAP Visualizer", GameWindowFlags.FixedWindow);
+            camera = new Camera(new OpenTK.Vector3(0, 0, 0), FOV, window.Width / (float)window.Height, 0.3f, 1000.0f);
+
             window.Load += Window_Load;
             window.RenderFrame += Window_RenderFrame;
             window.Resize += Window_Resize;
@@ -118,11 +119,10 @@ namespace csg_NET
             GL.Viewport(0, 0, window.Width, window.Height);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadIdentity();
-
-            Matrix4 matrix = camera.GetViewMatrix() * Matrix4.CreatePerspectiveFieldOfView(FOV, window.Width / (float)window.Height, 0.3f, 1000.0f);
-
+            Matrix4 matrix = camera.GetViewMatrix() * camera.Perspective;
             GL.LoadMatrix(ref matrix);
             GL.MatrixMode(MatrixMode.Modelview);
+            GL.Translate(new OpenTK.Vector3(-24f, 26f, -25.5f));
         }
 
         private static void Window_RenderFrame(object sender, FrameEventArgs e)
@@ -137,11 +137,12 @@ namespace csg_NET
                 ResetCursor();
             }
 
-            Matrix4 matrix = Matrix4.CreateTranslation(camera.Position) * camera.GetViewMatrix();
+
+            Matrix4 matrix = camera.GetViewMatrix();
             GL.LoadMatrix(ref matrix);
 
-            DrawTutorialCube();
-            // DrawMap();
+            //DrawTutorialCube();
+            DrawMap();
 
             GL.End();
 
