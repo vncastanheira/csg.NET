@@ -8,96 +8,73 @@ namespace csg_NET
 {
     public class Entity
     {
-        private Entity next;
-        private Property properties;
-        private Poly polys;
-
-        public Entity GetNext { get { return next; } }
-        public Property GetProperties { get { return properties; } }
-        public Poly GetPolys { get { return polys; } }
+        public Dictionary<string, string> Properties { get; private set; }
+        public Poly Polys { get; private set; }
 
         public Entity()
         {
-            next = null;
-            properties = null;
-            polys = null;
+            Properties = new Dictionary<string, string>();
+            Polys = null;
         }
 
         public int GetNumberOfProperties()
         {
-            Property p = properties;
-            int uiCount = 0;
+            //Property p = Properties;
+            //int uiCount = 0;
 
-            while (properties != null)
-            {
-                p = p.GetNext;
-                uiCount++;
-            }
+            //while (Properties != null)
+            //{
+            //    p = p.GetNext;
+            //    uiCount++;
+            //}
 
-            return uiCount;
+            //return uiCount;
+            return Properties.Count;
         }
 
         public int GetNumberOfPolys()
         {
-            Poly p = polys;
+            Poly p = Polys;
             int uiCount = 0;
 
             while (p != null)
             {
-                p = p.GetNext;
+                p = p.Next;
                 uiCount++;
             }
 
             return uiCount;
         }
 
-        public void AddEntity(Entity entity)
-        {
-            if(IsLast)
-            {
-                next = entity;
-                return;
-            }
+        //public void AddProperty(Property property)
+        //{
+        //    if (Properties == null)
+        //    {
+        //        Properties = property;
+        //        return;
+        //    }
 
-            Entity ent = next;
+        //    Property prop = Properties;
+        //    while (!prop.IsLast)
+        //    {
+        //        prop = prop.GetNext;
+        //    }
 
-            while (!ent.IsLast)
-            {
-                ent = ent.GetNext;
-            }
-
-            ent.next = entity;
-        }
-
-        public void AddProperty(Property property)
-        {
-            if (properties == null)
-            {
-                properties = property;
-                return;
-            }
-
-            Property prop = properties;
-            while (!prop.IsLast)
-            {
-                prop = prop.GetNext;
-            }
-
-            prop.SetNext(property);
-        }
+        //    prop.SetNext(property);
+        //}
 
         public void AddPoly(Poly poly)
         {
-            if (polys == null)
+            if (Polys == null)
             {
-                polys = poly;
+                Polys = poly;
                 return;
             }
 
-            Poly p = polys;
+            Poly p = Polys;
             while (!p.IsLast)
             {
-                p = p.GetNext;
+                p = p.Next;
             }
 
             p.SetNext(poly);
@@ -105,7 +82,5 @@ namespace csg_NET
 
         // TODO: file access
         public void WriteEntity(StreamWriter filestream) { }
-
-        public bool IsLast { get { return next == null; } }
     }
 }

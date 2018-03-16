@@ -4,20 +4,18 @@ namespace csg_NET
 {
     public class Face
     {
-        private Face next;
-
         public Plane plane;
         public Plane[] texAxis;
         public float[] texScale;
         public float texRotation;
         public Texture texture;
 
-        public Face GetNext { get { return next; } }
-        public bool IsLast { get { return next == null; } }
+        public Face Next { get; private set; }
+        public bool IsLast { get { return Next == null; } }
 
         public Face()
         {
-            next = null;
+            Next = null;
             texture = new Texture();
         }
 
@@ -25,24 +23,24 @@ namespace csg_NET
         {
             if (IsLast)
             {
-                next = face;
+                Next = face;
                 return;
             }
 
-            Face f = next;
+            Face f = Next;
             while (!f.IsLast)
             {
-                f = f.GetNext;
+                f = f.Next;
             }
 
-            f.next = face;
+            f.Next = face;
         }
 
         public void SetNext(Face face)
         {
             if (IsLast)
             {
-                next = face;
+                Next = face;
                 return;
             }
 
@@ -50,11 +48,11 @@ namespace csg_NET
             Face f = face;
             while (!f.IsLast)
             {
-                f = f.GetNext;
+                f = f.Next;
             }
 
-            f.SetNext(next);
-            next = face;
+            f.SetNext(Next);
+            Next = face;
         }
 
         /// <summary>
@@ -67,7 +65,7 @@ namespace csg_NET
 
             while (face != null)
             {
-                face = face.GetNext;
+                face = face.Next;
                 nFaces++;
             }
 
@@ -92,32 +90,32 @@ namespace csg_NET
 
                 if (c == nFaces - 3)
                 {
-                    lfi = face.GetNext;
+                    lfi = face.Next;
                 }
                 else if (c == nFaces - 2)
                 {
-                    lfj = face.GetNext;
+                    lfj = face.Next;
                 }
                 else if (c == nFaces - 1)
                 {
-                    lfk = face.GetNext;
+                    lfk = face.Next;
                 }
 
-                face = face.GetNext;
+                face = face.Next;
             }
 
             // Loop through faces and create polygons
             Poly pi = polyList;
 
-            for (Face fi = this; fi != lfi; fi = fi.GetNext)
+            for (Face fi = this; fi != lfi; fi = fi.Next)
             {
-                Poly pj = pi.GetNext;
+                Poly pj = pi.Next;
 
-                for (Face fj = fi.GetNext; fj != lfj; fj = fj.GetNext)
+                for (Face fj = fi.Next; fj != lfj; fj = fj.Next)
                 {
-                    Poly pk = pj.GetNext;
+                    Poly pk = pj.Next;
 
-                    for (Face fk = fj.GetNext; fk != lfk; fk = fk.GetNext)
+                    for (Face fk = fj.Next; fk != lfk; fk = fk.Next)
                     {
                         Vector3 p = Vector3.zero;
 
@@ -132,23 +130,28 @@ namespace csg_NET
                                     break;
                                 }
 
-                                Vertex v = new Vertex { p = p };
+                                if (!f.IsLast)
+                                {
+                                    Vertex v = new Vertex { p = p };
 
-                                pi.AddVertex(v);
-                                pj.AddVertex(v);
-                                pk.AddVertex(v);
+                                    pi.AddVertex(v);
+                                    pj.AddVertex(v);
+                                    pk.AddVertex(v);
 
-                                f = f.GetNext;
+                                    break;
+                                }
+
+                                f = f.Next;
                             }
                         }
 
-                        pk = pk.GetNext;
+                        pk = pk.Next;
                     }
 
-                    pj = pj.GetNext;
+                    pj = pj.Next;
                 }
 
-                pi = pi.GetNext;
+                pi = pi.Next;
             }
 
             return polyList;

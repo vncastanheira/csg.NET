@@ -8,13 +8,15 @@ namespace csg_NET
 {
     class Program
     {
-        const float FOV = 95f;
+        static float FOV = 1.3f;
 
         static GameWindow window;
+        static Camera camera;
         static MapFile map;
 
-        static Vector2 position = new Vector2(-45, -FOV);
-        static float speed = 0.3f;
+        static int pgmID;
+        static int vertID;
+        static int fragID;
 
         static void Main(string[] args)
         {
@@ -57,28 +59,58 @@ namespace csg_NET
                 return;
             }
 
-
+            camera = new Camera(0, 0, 0);
             window = new GameWindow(600, 600, GraphicsMode.Default, "MAP Visualizer", GameWindowFlags.FixedWindow);
             window.Load += Window_Load;
             window.RenderFrame += Window_RenderFrame;
             window.Resize += Window_Resize;
             window.KeyPress += Window_KeyPress;
+            window.FocusedChanged += Window_FocusedChanged;
             window.Run(1 / 60);
         }
 
+        private static void Window_FocusedChanged(object sender, EventArgs e)
+        {
+            if (window.Focused)
+            {
+                ResetCursor();
+            }
+        }
+
+        /// <summary>
+        /// On Key pressing
+        /// </summary>
         private static void Window_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == 'w')
-                position.Y += speed;
+                camera.Move(0f, 0.1f, 0f);
 
             if (e.KeyChar == 's')
-                position.Y -= speed;
+                camera.Move(0f, -0.1f, 0f);
 
             if (e.KeyChar == 'a')
-                position.X += speed;
+                camera.Move(-0.1f, 0f, 0f);
 
             if (e.KeyChar == 'd')
-                position.X -= speed;
+                camera.Move(0.1f, 0f, 0f);
+
+            if (e.KeyChar == 'q')
+                camera.Move(0f, 0f, 0.1f);
+
+            if (e.KeyChar == 'e')
+                camera.Move(0f, 0f, -0.1f);
+
+            if (e.KeyChar == '+')
+                FOV += 0.1f;
+
+            if (e.KeyChar == '-')
+                FOV -= 0.1f;
+
+            if (FOV > 3f)
+                FOV = 3f;
+
+            if (e.KeyChar == 'o' || e.KeyChar == 27)
+                Environment.Exit(0);
         }
 
         private static void Window_Resize(object sender, EventArgs e)
@@ -86,20 +118,30 @@ namespace csg_NET
             GL.Viewport(0, 0, window.Width, window.Height);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadIdentity();
-            Matrix4 matrix = Matrix4.Perspective(FOV, window.Width / window.Height, 1.0f, 1000f);
+
+            Matrix4 matrix = camera.GetViewMatrix() * Matrix4.CreatePerspectiveFieldOfView(FOV, window.Width / (float)window.Height, 0.3f, 1000.0f);
+
             GL.LoadMatrix(ref matrix);
             GL.MatrixMode(MatrixMode.Modelview);
         }
 
         private static void Window_RenderFrame(object sender, FrameEventArgs e)
         {
-            GL.LoadIdentity();
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            GL.Translate(position.X, 0.0, position.Y);
+            if (window.Focused)
+            {
+                Vector2 delta = lastMousePos - new Vector2(OpenTK.Input.Mouse.GetState().X, OpenTK.Input.Mouse.GetState().Y);
 
-            //            DrawTutorialCube();
-            DrawMap();
+                camera.AddRotation(delta.X, delta.Y);
+                ResetCursor();
+            }
+
+            Matrix4 matrix = Matrix4.CreateTranslation(camera.Position) * camera.GetViewMatrix();
+            GL.LoadMatrix(ref matrix);
+
+            DrawTutorialCube();
+            // DrawMap();
 
             GL.End();
 
@@ -108,6 +150,12 @@ namespace csg_NET
 
         private static void Window_Load(object sender, EventArgs e)
         {
+            //pgmID = GL.CreateProgram();
+            //LoadShader("vs.glsl", ShaderType.VertexShader, pgmID, out vertID);
+            //LoadShader("fs.glsl", ShaderType.FragmentShader, pgmID, out fragID);
+            //GL.LinkProgram(pgmID);
+            //Console.WriteLine(GL.GetProgramInfoLog(pgmID));
+
             GL.ClearColor(0f, 0f, 0f, 1f);
             GL.Enable(EnableCap.DepthTest);
         }
@@ -124,17 +172,16 @@ namespace csg_NET
         {
             GL.Begin(PrimitiveType.Polygon);
 
-            Entity entity = map.entityList;
-            while (entity != null)
+            for (int e = 0; e < map.entityList.Count; e++)
             {
-                Poly poly = entity.GetPolys;
+                Poly poly = map.entityList[e].Polys;
                 while (poly != null)
                 {
                     if (first)
                         Console.WriteLine("== Poly == ");
 
                     GL.Color4(poly.Color);
-                    for (int v = 0; v < poly.GetNumberOfVertices; v++)
+                    for (int v = 0; v < poly.NumberOfVertices; v++)
                     {
                         Vertex vert = poly.verts[v];
                         GL.Vertex3(vert.p.AsDouble());
@@ -146,11 +193,30 @@ namespace csg_NET
                     if (first)
                         Console.WriteLine("========== ");
 
-                    poly = poly.GetNext;
+                    poly = poly.Next;
                 }
-                entity = entity.GetNext;
             }
             first = false;
+        }
+
+        static void LoadShader(string filename, ShaderType type, int program, out int address)
+        {
+            address = GL.CreateShader(type);
+            string path = Path.Combine(Directory.GetCurrentDirectory(), filename);
+            using (StreamReader sr = new StreamReader(path))
+            {
+                GL.ShaderSource(address, sr.ReadToEnd());
+            }
+            GL.CompileShader(address);
+            GL.AttachShader(program, address);
+            Console.WriteLine(GL.GetShaderInfoLog(address));
+        }
+
+        static Vector2 lastMousePos = new Vector2();
+        static void ResetCursor()
+        {
+            OpenTK.Input.Mouse.SetPosition(window.Bounds.Left + window.Bounds.Width / 2, window.Bounds.Top + window.Bounds.Height / 2);
+            lastMousePos = new Vector2(OpenTK.Input.Mouse.GetState().X, OpenTK.Input.Mouse.GetState().Y);
         }
     }
 }

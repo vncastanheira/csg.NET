@@ -1,20 +1,25 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace csg_NET
 {
     public class MapFile
     {
-        public Entity entityList { get; private set; } = null;
+        public List<Entity> entityList;
         int entities = 0;
         int polygons = 0;
         int textures = 0;
+
+        public MapFile()
+        {
+            entityList = new List<Entity>();
+        }
 
         public void Load(Tokenizer tokenizer)
         {
             entities = 0;
             polygons = 0;
             textures = 0;
-            entityList = null;
 
             while (tokenizer.PeekNextToken().Type != Tokenizer.TokenType.EndOfStream)
             {
@@ -33,10 +38,12 @@ namespace csg_NET
                                 var value = tokenizer.GetNextToken();
                                 if (value.Type == Tokenizer.TokenType.Value)
                                 {
-                                    Property p = new Property();
-                                    p.SetName(token.Contents);
-                                    p.SetValue(value.Contents);
-                                    e.AddProperty(p);
+                                    e.Properties.Add(token.Contents, value.Contents);
+
+                                    //Property p = new Property();
+                                    //p.SetName(token.Contents);
+                                    //p.SetValue(value.Contents);
+                                    //e.AddProperty(p);
                                 }
                                 else
                                 {
@@ -56,7 +63,7 @@ namespace csg_NET
                                     Vector3 v1 = Vector3Extension.FromToken(tokenizer);
                                     Vector3 v2 = Vector3Extension.FromToken(tokenizer);
                                     Vector3 v3 = Vector3Extension.FromToken(tokenizer);
-                                    face.plane = new Plane(v1, v2, v3);
+                                    face.plane = new Plane(v1, v3, v2);
 
                                     // TODO: read texture maybe?
                                     string textureName = tokenizer.GetNextValue();
@@ -112,8 +119,8 @@ namespace csg_NET
                                     //    f.texAxis[0], f.texAxis[1],
                                     //    f.texScale[0], f.texScale[1]);
 
-                                    f = f.GetNext;
-                                    pi = pi.GetNext;
+                                    f = f.Next;
+                                    pi = pi.Next;
                                 }
 
                                 b.AddPoly(polyList);
@@ -148,15 +155,7 @@ namespace csg_NET
                         polygons += e.GetNumberOfPolys();
                     }
 
-                    if (entityList == null)
-                    {
-                        entityList = e;
-                    }
-                    else
-                    {
-                        entityList.AddEntity(e);
-                    }
-                    entities++;
+                    entityList.Add(e);   
                 }
             }
 

@@ -19,7 +19,7 @@ namespace csg_NET
                 int count = 0;
                 while (poly != null)
                 {
-                    poly = poly.GetNext;
+                    poly = poly.Next;
                     count++;
                 }
                 return count;
@@ -101,7 +101,7 @@ namespace csg_NET
             Poly p = polys;
             while (!p.IsLast)
             {
-                p = p.GetNext;
+                p = p.Next;
             }
 
             p.SetNext(poly);
@@ -210,7 +210,7 @@ namespace csg_NET
                     polyList.AddPoly(clippedPoly);
                 }
 
-                p = p.GetNext;
+                p = p.Next;
             }
 
             polys = polyList;
@@ -225,7 +225,7 @@ namespace csg_NET
 
             for (int i = 0; i < GetNumberOfPolys; i++)
             {
-                for (int j = 0; j < p.GetNumberOfVertices; j++)
+                for (int j = 0; j < p.NumberOfVertices; j++)
                 {
                     // Calculate min
                     if (p.verts[j].p.x < min.x)
@@ -260,7 +260,7 @@ namespace csg_NET
                     }
                 }
 
-                p = p.GetNext;
+                p = p.Next;
             }
         }
 

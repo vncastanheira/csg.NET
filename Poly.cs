@@ -6,9 +6,8 @@ namespace csg_NET
 {
     public class Poly
     {
-        private Poly next;
-        private int numberOfVertices;
-
+        public int NumberOfVertices { get; private set; }
+        public Poly Next { get; private set; }
         public enum eCP { FRONT = 0, SPLIT, BACK, ONPLANE }
 
         public Vertex[] verts;
@@ -16,13 +15,11 @@ namespace csg_NET
         public int TextureID;
         public Color4 Color;
 
-        public Poly GetNext { get { return next; } }
-        public int GetNumberOfVertices { get { return numberOfVertices; } }
-        public bool IsLast { get { return next == null; } }
+        public bool IsLast { get { return Next == null; } }
 
         public Poly()
         {
-            next = null;
+            Next = null;
             verts = new Vertex[0];
 
             var rand = new Random();
@@ -37,7 +34,7 @@ namespace csg_NET
             Poly p = CopyPoly();
 
             if (!IsLast)
-                p.AddPoly(next.CopyList());
+                p.AddPoly(Next.CopyList());
 
             return p;
         }
@@ -46,10 +43,10 @@ namespace csg_NET
         {
             Poly p = new Poly();
             p.TextureID = TextureID;
-            p.numberOfVertices = numberOfVertices;
+            p.NumberOfVertices = NumberOfVertices;
             p.plane = plane;
-            p.verts = new Vertex[numberOfVertices];
-            Array.Copy(verts, p.verts, numberOfVertices);
+            p.verts = new Vertex[NumberOfVertices];
+            Array.Copy(verts, p.verts, NumberOfVertices);
             return p;
         }
 
@@ -63,7 +60,7 @@ namespace csg_NET
                 case eCP.BACK:
                     if (IsLast) return null;
 
-                    return next.ClipToList(poly, clipOnPlane);
+                    return Next.ClipToList(poly, clipOnPlane);
 
                 case eCP.ONPLANE:
                     float angle = Vector3.Dot(plane.n, poly.plane.n) - 1;
@@ -77,7 +74,7 @@ namespace csg_NET
                     if (IsLast)
                         return null;
 
-                    return next.ClipToList(poly, clipOnPlane);
+                    return Next.ClipToList(poly, clipOnPlane);
 
                 case eCP.SPLIT:
                     Poly front = null;
@@ -88,7 +85,7 @@ namespace csg_NET
                     if (IsLast)
                         return front;
 
-                    Poly backFrags = next.ClipToList(back, clipOnPlane);
+                    Poly backFrags = Next.ClipToList(back, clipOnPlane);
 
                     if (backFrags == null)
                         return front;
@@ -99,19 +96,19 @@ namespace csg_NET
                     front.AddPoly(backFrags);
 
                     return front;
-                default:
-                    return null;
             }
+
+            return null;
         }
 
         public void AddVertex(Vertex vertex)
         {
-            Vertex[] vertices = new Vertex[numberOfVertices + 1];
-            Array.Copy(verts, vertices, numberOfVertices);
+            Vertex[] vertices = new Vertex[NumberOfVertices + 1];
+            Array.Copy(verts, vertices, NumberOfVertices);
 
             verts = vertices;
-            verts[numberOfVertices] = vertex;
-            numberOfVertices++;
+            verts[NumberOfVertices] = vertex;
+            NumberOfVertices++;
         }
 
         public void AddPoly(Poly pPoly_)
@@ -120,17 +117,17 @@ namespace csg_NET
             {
                 if (IsLast)
                 {
-                    next = pPoly_;
+                    Next = pPoly_;
                     return;
                 }
 
-                Poly p = next;
+                Poly p = Next;
                 while (!p.IsLast)
                 {
-                    p = p.GetNext;
+                    p = p.Next;
                 }
 
-                p.next = pPoly_;
+                p.Next = pPoly_;
             }
         }
 
@@ -138,20 +135,19 @@ namespace csg_NET
         {
             if (IsLast)
             {
-                next = poly;
+                Next = poly;
                 return;
             }
 
             Poly p = poly;
             while (!p.IsLast)
             {
-                p = p.GetNext;
+                p = p.Next;
             }
 
-            p.SetNext(next);
-            next = poly;
+            p.SetNext(Next);
+            Next = poly;
         }
-
 
         public bool CalculatePlane()
         {
@@ -159,7 +155,7 @@ namespace csg_NET
             float magnitude;
             int i, j;
 
-            if (GetNumberOfVertices < 3)
+            if (NumberOfVertices < 3)
             {
                 Console.WriteLine("Polygon has less than 3 vertices!");
                 return false;
@@ -168,11 +164,11 @@ namespace csg_NET
             plane.n = Vector3.zero;
             centerOfMass = Vector3.zero;
 
-            for (i = 0; i < GetNumberOfVertices; i++)
+            for (i = 0; i < NumberOfVertices; i++)
             {
                 j = i + 1;
 
-                if (j >= GetNumberOfVertices) j = 0;
+                if (j >= NumberOfVertices) j = 0;
 
                 plane.n.x += (verts[i].p.y - verts[j].p.y) * (verts[i].p.z + verts[j].p.z);
                 plane.n.y += (verts[i].p.z - verts[j].p.z) * (verts[i].p.x + verts[j].p.x);
@@ -195,7 +191,7 @@ namespace csg_NET
                 return false;
 
             plane.n /= magnitude;
-            centerOfMass /= GetNumberOfVertices;
+            centerOfMass /= NumberOfVertices;
             plane.d = -(Vector3.Dot(centerOfMass, plane.n));
 
             return true;
@@ -207,15 +203,15 @@ namespace csg_NET
             Vector3 center = Vector3.zero;
             int i;
 
-            for (i = 0; i < GetNumberOfVertices; i++)
+            for (i = 0; i < NumberOfVertices; i++)
             {
                 center += verts[i].p;
             }
 
-            center /= GetNumberOfVertices;
+            center /= NumberOfVertices;
 
             // Sort vertices
-            for (i = 0; i < GetNumberOfVertices - 2; i++)
+            for (i = 0; i < NumberOfVertices - 2; i++)
             {
                 Vector3 a = Vector3.zero;
                 Plane p = new Plane();
@@ -227,7 +223,7 @@ namespace csg_NET
 
                 p.PointsToPlane(verts[i].p, center, center + plane.n);
 
-                for (int j = i + 1; j < GetNumberOfVertices; j++)
+                for (int j = i + 1; j < NumberOfVertices; j++)
                 {
                     if (p.ClassifyPoints(verts[j].p) != Plane.eCP.BACK)
                     {
@@ -245,7 +241,7 @@ namespace csg_NET
 
                 if (smallest == -1)
                 {
-                    Console.WriteLine("Error: degenerate polygon! lock him up");
+                    Console.WriteLine("Error: degenerate polygon!");
                     Console.ReadKey();
                     Environment.Exit(1);
                 }
@@ -262,7 +258,7 @@ namespace csg_NET
 
             if (Vector3.Dot(plane.n, oldPlane.n) < 0)
             {
-                int j = GetNumberOfVertices;
+                int j = NumberOfVertices;
 
                 for (int index = 0; index < j; index++)
                 {
@@ -283,7 +279,7 @@ namespace csg_NET
         {
 
             // Calculate texture coordinates
-            for (int i = 0; i < GetNumberOfVertices; i++)
+            for (int i = 0; i < NumberOfVertices; i++)
             {
                 float U, V;
 
@@ -301,7 +297,7 @@ namespace csg_NET
             // Check which axis should be normalized
             bool doU = true, doV = true;
 
-            for (int i = 0; i < GetNumberOfVertices; i++)
+            for (int i = 0; i < NumberOfVertices; i++)
             {
                 if (verts[i].tex[0] < 1 && verts[i].tex[0] > -1)
                 {
@@ -347,7 +343,7 @@ namespace csg_NET
                     }
                 }
 
-                for (int i = 0; i < GetNumberOfVertices; i++)
+                for (int i = 0; i < NumberOfVertices; i++)
                 {
                     if (doU)
                     {
@@ -385,7 +381,7 @@ namespace csg_NET
                 }
 
                 // Normalize texture coordinates
-                for (int i = 0; i < GetNumberOfVertices; i++)
+                for (int i = 0; i < NumberOfVertices; i++)
                 {
                     verts[i].tex[0] = verts[i].tex[0] - nearestU;
                     verts[i].tex[1] = verts[i].tex[1] - nearestV;
@@ -395,10 +391,10 @@ namespace csg_NET
 
         public void SplitPoly(Poly poly, ref Poly front, ref Poly back)
         {
-            Plane.eCP[] cp = new Plane.eCP[poly.GetNumberOfVertices];
+            Plane.eCP[] cp = new Plane.eCP[poly.NumberOfVertices];
 
             // classify all points
-            for (int i = 0; i < poly.GetNumberOfVertices; i++)
+            for (int i = 0; i < poly.NumberOfVertices; i++)
             {
                 cp[i] = plane.ClassifyPoints(poly.verts[i].p);
             }
@@ -412,7 +408,7 @@ namespace csg_NET
             newFront.plane = poly.plane;
             newBack.plane = poly.plane;
 
-            for (int i = 0; i < poly.GetNumberOfVertices; i++)
+            for (int i = 0; i < poly.NumberOfVertices; i++)
             {
                 // Add point to appropriate list
                 switch (cp[i])
@@ -433,7 +429,7 @@ namespace csg_NET
                 int iNext = i + 1;
                 bool ignore = false;
 
-                if (i == (poly.GetNumberOfVertices - 1))
+                if (i == (poly.NumberOfVertices - 1))
                     iNext = 0;
 
                 if (cp[i] == Plane.eCP.ONPLANE && cp[iNext] != Plane.eCP.ONPLANE)
@@ -475,7 +471,7 @@ namespace csg_NET
             bool front = false, back = false;
             float dist;
 
-            for (int i = 0; i < poly.GetNumberOfVertices; i++)
+            for (int i = 0; i < poly.NumberOfVertices; i++)
             {
                 dist = Vector3.Dot(plane.n, poly.verts[i].p) + plane.d;
 
@@ -512,13 +508,13 @@ namespace csg_NET
             if (ReferenceEquals(p2, null))
                 return ReferenceEquals(p1, null);
 
-            if (p1.numberOfVertices == p2.numberOfVertices)
+            if (p1.NumberOfVertices == p2.NumberOfVertices)
             {
                 if (p1.plane.d == p2.plane.d)
                 {
                     if (p1.plane.n == p2.plane.n)
                     {
-                        for (int i = 0; i < p1.GetNumberOfVertices; i++)
+                        for (int i = 0; i < p1.NumberOfVertices; i++)
                         {
                             if (p1.verts[i].p == p2.verts[i].p)
                             {
