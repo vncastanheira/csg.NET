@@ -1,22 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace csg_NET
 {
     public class MapFile
     {
         public List<Entity> entityList;
+        public string FilePath { get; private set; }
         int entities = 0;
         int polygons = 0;
         int textures = 0;
 
-        public MapFile()
+        public MapFile(string path)
         {
             entityList = new List<Entity>();
+            FilePath = path;
         }
 
         public void Load(Tokenizer tokenizer)
         {
+            entityList.Clear();
             entities = 0;
             polygons = 0;
             textures = 0;
@@ -39,11 +43,6 @@ namespace csg_NET
                                 if (value.Type == Tokenizer.TokenType.Value)
                                 {
                                     e.Properties.Add(token.Contents, value.Contents);
-
-                                    //Property p = new Property();
-                                    //p.SetName(token.Contents);
-                                    //p.SetValue(value.Contents);
-                                    //e.AddProperty(p);
                                 }
                                 else
                                 {
@@ -133,7 +132,7 @@ namespace csg_NET
                                 else
                                 {
                                     Brush temp = brushList;
-                                    while (!temp.IsLast) temp = temp.GetNext;
+                                    while (!temp.IsLast) temp = temp.Next;
                                     temp.SetNext(b);
                                 }
 
@@ -162,6 +161,16 @@ namespace csg_NET
             Console.WriteLine("Map created.");
             Console.WriteLine(" -" + entities + " entities loaded.");
             Console.WriteLine(" -" + polygons + " polygons loaded.");
+        }
+
+        public void Reload()
+        {
+            using (StreamReader fStream = new StreamReader(FilePath))
+            {
+                string mapStr = fStream.ReadToEnd();
+                Tokenizer tokenizer = new Tokenizer(mapStr);
+                Load(tokenizer);
+            }
         }
     }
 }

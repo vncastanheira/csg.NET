@@ -7,7 +7,7 @@ namespace csg_NET
 {
     public static class Mathf
     {
-        public const float EPSILON = 1e-5F;
+        public const float EPSILON = float.Epsilon; //1e-5F;
 
     }
 }

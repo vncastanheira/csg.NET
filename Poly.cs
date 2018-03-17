@@ -501,9 +501,6 @@ namespace csg_NET
             return eCP.ONPLANE;
         }
 
-        // TODO: file write
-        public void WritePoly(StreamWriter fileStream) { }
-
         public static bool operator ==(Poly p1, Poly p2)
         {
             if (ReferenceEquals(p1, null))

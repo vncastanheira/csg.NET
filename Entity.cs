@@ -11,26 +11,14 @@ namespace csg_NET
         public Dictionary<string, string> Properties { get; private set; }
         public Poly Polys { get; private set; }
 
+        public int NumberOfProperties { get { return Properties.Count; } }
+
         public Entity()
         {
             Properties = new Dictionary<string, string>();
             Polys = null;
         }
 
-        public int GetNumberOfProperties()
-        {
-            //Property p = Properties;
-            //int uiCount = 0;
-
-            //while (Properties != null)
-            //{
-            //    p = p.GetNext;
-            //    uiCount++;
-            //}
-
-            //return uiCount;
-            return Properties.Count;
-        }
 
         public int GetNumberOfPolys()
         {
@@ -45,23 +33,6 @@ namespace csg_NET
 
             return uiCount;
         }
-
-        //public void AddProperty(Property property)
-        //{
-        //    if (Properties == null)
-        //    {
-        //        Properties = property;
-        //        return;
-        //    }
-
-        //    Property prop = Properties;
-        //    while (!prop.IsLast)
-        //    {
-        //        prop = prop.GetNext;
-        //    }
-
-        //    prop.SetNext(property);
-        //}
 
         public void AddPoly(Poly poly)
         {
@@ -79,8 +50,5 @@ namespace csg_NET
 
             p.SetNext(poly);
         }
-
-        // TODO: file access
-        public void WriteEntity(StreamWriter filestream) { }
     }
 }

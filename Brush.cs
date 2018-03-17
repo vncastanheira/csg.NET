@@ -5,17 +5,15 @@ namespace csg_NET
     public class Brush
     {
         private Vector3 min, max;
-        private Brush next;
-        private Poly polys;
 
-        public Brush GetNext { get { return next; } }
-        public Poly GetPolys { get { return polys; } }
+        public Brush Next { get; private set; }
+        public Poly Polys { get; private set; }
 
         public int GetNumberOfPolys
         {
             get
             {
-                Poly poly = polys;
+                Poly poly = Polys;
                 int count = 0;
                 while (poly != null)
                 {
@@ -30,23 +28,23 @@ namespace csg_NET
         {
             get
             {
-                Brush brush = next;
+                Brush brush = Next;
                 int count = 1;
                 while (brush != null)
                 {
-                    brush = brush.GetNext;
+                    brush = brush.Next;
                     count++;
                 }
                 return count;
             }
         }
 
-        public bool IsLast { get { return next == null; } }
+        public bool IsLast { get { return Next == null; } }
 
         public Brush()
         {
-            next = null;
-            polys = null;
+            Next = null;
+            Polys = null;
         }
 
         public Brush CopyList()
@@ -55,11 +53,11 @@ namespace csg_NET
             brush.max = max;
             brush.min = min;
 
-            brush.polys = polys.CopyList();
+            brush.Polys = Polys.CopyList();
 
             if (!IsLast)
             {
-                brush.SetNext(next.CopyList());
+                brush.SetNext(Next.CopyList());
             }
 
             return brush;
@@ -67,38 +65,38 @@ namespace csg_NET
 
         public void SetNext(Brush brush)
         {
-            if(IsLast)
+            if (IsLast)
             {
-                next = brush;
+                Next = brush;
                 return;
             }
 
-            if(brush == null)
+            if (brush == null)
             {
-                next = null;
+                Next = null;
             }
             else
             {
                 Brush b = brush;
                 while (!b.IsLast)
                 {
-                    b = b.GetNext;
+                    b = b.Next;
                 }
 
-                b.SetNext(next);
-                next = brush;
+                b.SetNext(Next);
+                Next = brush;
             }
         }
 
         public void AddPoly(Poly poly)
         {
-            if (polys == null)
+            if (Polys == null)
             {
-                polys = poly;
+                Polys = poly;
                 return;
             }
 
-            Poly p = polys;
+            Poly p = Polys;
             while (!p.IsLast)
             {
                 p = p.Next;
@@ -136,10 +134,10 @@ namespace csg_NET
                         }
                     }
 
-                    brush = brush.GetNext;
+                    brush = brush.Next;
                 }
 
-                clip = clip.GetNext;
+                clip = clip.Next;
             }
 
             clip = clippedList;
@@ -149,7 +147,7 @@ namespace csg_NET
                 if (clip.GetNumberOfPolys != 0)
                 {
                     // Extract brushes left over polygons and add them to the list
-                    Poly p = clip.GetPolys.CopyList();
+                    Poly p = clip.Polys.CopyList();
 
                     if (polyList == null)
                     {
@@ -160,14 +158,14 @@ namespace csg_NET
                         polyList.AddPoly(p);
                     }
 
-                    clip = clip.GetNext;
+                    clip = clip.Next;
                 }
                 else
                 {
                     // Brush has no polygons and should be deleted
                     if (clip == clippedList)
                     {
-                        clip = clippedList.GetNext;
+                        clip = clippedList.Next;
                         clippedList.SetNext(null);
                         clippedList = clip;
                     }
@@ -176,15 +174,15 @@ namespace csg_NET
                         Brush temp = clippedList;
                         while (temp != null)
                         {
-                            if (temp.GetNext == clip)
+                            if (temp.Next == clip)
                                 break;
 
-                            temp = temp.GetNext;
+                            temp = temp.Next;
                         }
 
-                        temp.next = clip.GetNext;
+                        temp.Next = clip.Next;
                         clip.SetNext(null);
-                        clip = temp.GetNext;
+                        clip = temp.Next;
                     }
                 }
             }
@@ -195,11 +193,11 @@ namespace csg_NET
         public void ClipToBrush(Brush brush, bool clipOnPlane)
         {
             Poly polyList = null;
-            Poly p = polys;
+            Poly p = Polys;
 
             for (int i = 0; i < GetNumberOfPolys; i++)
             {
-                Poly clippedPoly = brush.GetPolys.ClipToList(p, clipOnPlane);
+                Poly clippedPoly = brush.Polys.ClipToList(p, clipOnPlane);
 
                 if (polyList == null)
                 {
@@ -213,15 +211,15 @@ namespace csg_NET
                 p = p.Next;
             }
 
-            polys = polyList;
+            Polys = polyList;
         }
 
         public void CalculateAABB()
         {
-            min = polys.verts[0].p;
-            max = polys.verts[0].p;
+            min = Polys.verts[0].p;
+            max = Polys.verts[0].p;
 
-            Poly p = polys;
+            Poly p = Polys;
 
             for (int i = 0; i < GetNumberOfPolys; i++)
             {
@@ -266,7 +264,7 @@ namespace csg_NET
 
         public bool AABBIntersect(Brush brush)
         {
-            if((min.x > brush.max.x) || (brush.min.x > max.x))
+            if ((min.x > brush.max.x) || (brush.min.x > max.x))
             {
                 return false;
             }

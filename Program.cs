@@ -29,35 +29,7 @@ namespace csg_NET
                 return;
             }
 
-            // Seach for MAP file
-            string mapPath = Path.Combine(Directory.GetCurrentDirectory(), args[0]);
-            if (File.Exists(mapPath))
-            {
-                // OK, parsing MAP...
-                try
-                {
-                    StreamReader fStream = new StreamReader(mapPath);
-                    string mapStr = fStream.ReadToEnd();
-                    Tokenizer tokenizer = new Tokenizer(mapStr);
-
-                    map = new MapFile();
-                    map.Load(tokenizer);
-
-                }
-                catch (Exception ex)
-                {
-                    Console.Write(ex.Message + "\n");
-                    Console.Write(ex.StackTrace);
-                    Console.ReadKey();
-                    return;
-                }
-            }
-            else
-            {
-                Console.WriteLine("The file path could not be found.");
-                Console.ReadLine();
-                return;
-            }
+            MapLoad(args[0]);            
 
             window = new GameWindow(600, 600, GraphicsMode.Default, "MAP Visualizer", GameWindowFlags.FixedWindow);
             camera = new Camera(new OpenTK.Vector3(0, 0, 0), FOV, window.Width / (float)window.Height, 0.3f, 1000.0f);
@@ -70,6 +42,9 @@ namespace csg_NET
             window.Run(1 / 60);
         }
 
+        #region Window 
+
+        /// <summary> Window mouse focus </summary>
         private static void Window_FocusedChanged(object sender, EventArgs e)
         {
             if (window.Focused)
@@ -78,9 +53,7 @@ namespace csg_NET
             }
         }
 
-        /// <summary>
-        /// On Key pressing
-        /// </summary>
+        /// <summary> On Key pressing </summary>
         private static void Window_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == 'w')
@@ -101,6 +74,12 @@ namespace csg_NET
             if (e.KeyChar == 'e')
                 camera.Move(0f, 0f, -0.1f);
 
+            if (e.KeyChar == 'r')
+            {
+                map.Reload();
+                first = true;
+            }
+
             if (e.KeyChar == '+')
                 FOV += 0.1f;
 
@@ -114,6 +93,7 @@ namespace csg_NET
                 Environment.Exit(0);
         }
 
+        /// <summary> On Window Resize </summary>
         private static void Window_Resize(object sender, EventArgs e)
         {
             GL.Viewport(0, 0, window.Width, window.Height);
@@ -125,6 +105,7 @@ namespace csg_NET
             GL.Translate(new OpenTK.Vector3(-24f, 26f, -25.5f));
         }
 
+        /// <summary> On Window Load </summary>
         private static void Window_Load(object sender, EventArgs e)
         {
             window.CursorVisible = false;
@@ -143,13 +124,11 @@ namespace csg_NET
 
             Console.WriteLine("Error status: " + GL.GetError());
 
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.Translate(new OpenTK.Vector3(0, -90, -90));
-
-            GL.MatrixMode(MatrixMode.Projection);
-
+            //Matrix4 matrix = Matrix4.CreateTranslation(new OpenTK.Vector3(0, -90, -90));
+            //GL.LoadMatrix(ref matrix);
         }
 
+        /// <summary> On Window Update </summary>
         private static void Window_RenderFrame(object sender, FrameEventArgs e)
         {
             window.Title = string.Format("MAP Viewer | FPS: {0:0.##}", (1f / e.Time));
@@ -165,8 +144,8 @@ namespace csg_NET
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             Matrix4 matrix = camera.GetViewMatrix();
             GL.LoadMatrix(ref matrix);
-
-            GL.UseProgram(pgmID);
+            
+            //GL.UseProgram(pgmID);
             //DrawTutorialCube();
             DrawMap();
 
@@ -174,6 +153,8 @@ namespace csg_NET
 
             window.SwapBuffers();
         }
+
+        #endregion
 
         static void DrawTutorialCube()
         {
@@ -236,6 +217,41 @@ namespace csg_NET
         {
             OpenTK.Input.Mouse.SetPosition(window.Bounds.Left + window.Bounds.Width / 2, window.Bounds.Top + window.Bounds.Height / 2);
             lastMousePos = new Vector2(OpenTK.Input.Mouse.GetState().X, OpenTK.Input.Mouse.GetState().Y);
+        }
+
+        static void MapLoad(string mapName)
+        {
+            // Seach for MAP file
+            string mapPath = Path.Combine(Directory.GetCurrentDirectory(), mapName);
+            if (File.Exists(mapPath))
+            {
+                // OK, parsing MAP...
+                try
+                {
+                    using (StreamReader fStream = new StreamReader(mapPath))
+                    {
+                        string mapStr = fStream.ReadToEnd();
+                        Tokenizer tokenizer = new Tokenizer(mapStr);
+
+                        map = new MapFile(mapPath);
+                        map.Load(tokenizer);
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Console.Write(ex.Message + "\n");
+                    Console.Write(ex.StackTrace);
+                    Console.ReadKey();
+                    return;
+                }
+            }
+            else
+            {
+                Console.WriteLine("The file path could not be found.");
+                Console.ReadLine();
+                return;
+            }
         }
     }
 }
