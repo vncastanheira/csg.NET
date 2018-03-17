@@ -20,6 +20,7 @@ namespace csg_NET
             Position = pos;
         }
 
+        /// <summary> Create a visualization matrix </summary>
         public Matrix4 GetViewMatrix()
         {
             OpenTK.Vector3 lookat = new OpenTK.Vector3();
@@ -30,7 +31,7 @@ namespace csg_NET
 
             return Matrix4.LookAt(Position, Position + lookat, OpenTK.Vector3.UnitY);
         }
-
+        
         public void Move(float x, float y, float z)
         {
             OpenTK.Vector3 offset = new OpenTK.Vector3();

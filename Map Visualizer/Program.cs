@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
+using csg_NET;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
-namespace csg_NET
+namespace Map_Visualizer
 {
     class Program
     {
@@ -29,7 +30,7 @@ namespace csg_NET
                 return;
             }
 
-            MapLoad(args[0]);            
+            MapLoad(args[0]);
 
             window = new GameWindow(600, 600, GraphicsMode.Default, "MAP Visualizer", GameWindowFlags.FixedWindow);
             camera = new Camera(new OpenTK.Vector3(0, 0, 0), FOV, window.Width / (float)window.Height, 0.3f, 1000.0f);
@@ -144,7 +145,7 @@ namespace csg_NET
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             Matrix4 matrix = camera.GetViewMatrix();
             GL.LoadMatrix(ref matrix);
-            
+
             //GL.UseProgram(pgmID);
             //DrawTutorialCube();
             DrawMap();

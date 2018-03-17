@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace csg_NET
+namespace Mathlib
 {
     public class Plane
     {

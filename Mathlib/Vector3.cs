@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace csg_NET
+namespace Mathlib
 {
     /// <summary>
     ///   <para>Representation of 3D vectors and points.</para>
